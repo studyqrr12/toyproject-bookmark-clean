@@ -17,20 +17,30 @@ defineProps({
     }
 });
 
+const emit = defineEmits<{
+    (e: 'update:visible', value: boolean): void
+}>();
+
+function updateVisible(e: MouseEvent) {
+    const el = e.target as HTMLInputElement;
+    emit('update:visible', el.getAttribute('data-visible') != 'false');
+}
+
+
 </script>
 
 <template>
     <VModal v-if="visible">
         <div class="modal-header">
             <h5 class="modal-title">이동</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                    aria-hidden="true">×</span></button>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" @click="updateVisible"
+                data-visible="false"><span aria-hidden="true" data-visible="false">×</span></button>
         </div>
         <div class="modal-body">
             <VListItem v-for="item in items" :key="item.event">{{ item.text }}</VListItem>
         </div>
         <div class="modal-footer">
-            <VButton>취소</VButton>
+            <VButton @click="updateVisible" data-visible="false">취소</VButton>
             <VButton>적용</VButton>
         </div>
     </VModal>

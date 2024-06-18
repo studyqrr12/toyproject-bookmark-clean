@@ -2,20 +2,33 @@
 import VButton from '../components/VButton.vue';
 import VModal from '../components/VModal.vue';
 
-defineProps({
-    visible: {
-        type: Boolean,
-        require: true
-    },
-    text: {
-        type: String,
-        require: true
-    },
-    link: {
-        type: String,
-        require: true
-    }
-});
+const props = defineProps<{
+    visible: boolean,
+    text: string,
+    link: string
+}>();
+
+const emit = defineEmits<{
+    (e: 'update:visible', value: boolean): void
+    (e: 'update:text', value: string): void
+    (e: 'update:link', value: string): void
+}>();
+
+function updateVisible(e: MouseEvent) {
+    const el = e.target as HTMLInputElement;
+    emit('update:visible', el.getAttribute('data-visible') != 'false');
+}
+
+function updateText(e: InputEvent) {
+    const el = e.target as HTMLInputElement;
+    emit('update:text', el.value);
+}
+
+function updateLink(e: InputEvent) {
+    const el = e.target as HTMLInputElement;
+    emit('update:link', el.value);
+}
+
 
 </script>
 
@@ -23,8 +36,8 @@ defineProps({
     <VModal v-if="visible">
         <div class="modal-header">
             <h5 class="modal-title">수정</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                    aria-hidden="true">×</span></button>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-visible="false"
+                @click="updateVisible"><span aria-hidden="true" data-visible="false">×</span></button>
         </div>
         <div class="modal-body">
 
@@ -32,19 +45,21 @@ defineProps({
                 <div class="input-group-prepend">
                     <span class="input-group-text">텍스트</span>
                 </div>
-                <input type="text" class="form-control" aria-describedby="basic-addon3">
+                <input type="text" class="form-control" aria-describedby="basic-addon3" :value="text"
+                    @input="updateText">
             </div>
 
             <div class="input-group">
                 <div class="input-group-prepend">
                     <span class="input-group-text">링크</span>
                 </div>
-                <input type="text" class="form-control" aria-describedby="basic-addon3">
+                <input type="text" class="form-control" aria-describedby="basic-addon3" :value="link"
+                    @input="updateLink">
             </div>
 
         </div>
         <div class="modal-footer">
-            <VButton>취소</VButton>
+            <VButton data-visible="false" @click="updateVisible">취소</VButton>
             <VButton>적용</VButton>
         </div>
     </VModal>

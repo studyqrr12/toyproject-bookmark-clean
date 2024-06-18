@@ -1,5 +1,9 @@
 <script setup lang="ts">
 defineProps({
+    visible: {
+        type: Boolean,
+        require: true
+    },
     items: {
         type: Array<{
             text: String,
@@ -9,12 +13,21 @@ defineProps({
     }
 });
 
+const emit = defineEmits<{
+    (e: 'update:visible', value: boolean): void
+}>();
+
+function clickEvent(e: MouseEvent) {
+    emit('update:visible', false);
+}
+
 </script>
 
 <template>
-    <div>
+    <div v-if="visible">
         <ul>
-            <li v-for="item in items" :key="item.event"><a :data-menu-action="item.event">{{ item.text }}</a></li>
+            <li v-for="item in items" :key="item.event"><a :data-menu-action="item.event" @click="clickEvent">{{
+                item.text }}</a></li>
         </ul>
     </div>
 </template>

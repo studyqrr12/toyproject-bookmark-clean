@@ -4,25 +4,16 @@ import VListItem from '../components/VListItem.vue';
 import VContextMenu from '../components/VContextMenu.vue';
 import VMoveModal from '../components/VMoveModal.vue';
 import VEditModal from '../components/VEditModal.vue';
-import { ref } from 'vue';
+import { createBookmarkListData, createContextMenuData, createEditModalData, createMoveModalData } from '@/data/data';
 
-const contentMenuItems = ref([
-  { text: 'a', event: 'A' },
-  { text: 'b', event: 'B' },
-  { text: 'c', event: 'C' }
-]);
+const { visible: editModalVisible, text: editModalText, link: editModalLink, initValues: initEditModalValues, updateVisible: updateEditModalVisible, updateText: updateEditModalText, updateLink: updateEditModalLink } = createEditModalData();
+const { visible: moveModalVisible, items: moveModalItems, initValues: initMoveModalValues, updateVisible: updateMoveModalVisible, updateItems: updateMoveModalItems } = createMoveModalData();
+const { visible: contentMenuVisible, items: contentMenuItems, updateVisible: updateContextMenuVisible } = createContextMenuData();
+const { items: listItems } = createBookmarkListData();
 
-const listItems = ref([
-  { id: 1, text: "List 1" },
-  { id: 2, text: "List 2" },
-  { id: 3, text: "List 3" }
-]);
-
-const modalitems = ref([
-  { text: 'AA', event: 'A' },
-  { text: 'BB', event: 'B' },
-  { text: 'CC', event: 'C' }
-]);
+updateContextMenuVisible(true);
+updateMoveModalVisible(true);
+updateEditModalVisible(true);
 
 </script>
 
@@ -34,9 +25,10 @@ const modalitems = ref([
     <div class="mt-2">
       <VListItem v-for="itme in listItems" :key="itme.id">{{ itme.text }}</VListItem>
     </div>
-    <VContextMenu :items="contentMenuItems" />
-    <VMoveModal :visible="true" :items="modalitems" />
-    <VEditModal :visible="true" />
+    <VContextMenu :visible="contentMenuVisible" :items="contentMenuItems" @update:visible="updateContextMenuVisible" />
+    <VMoveModal :visible="moveModalVisible" :items="moveModalItems" @update:visible="updateMoveModalVisible" />
+    <VEditModal :visible="editModalVisible" :text="editModalText" :link="editModalLink"
+      @update:visible="updateEditModalVisible" @update:text="updateEditModalText" @update:link="updateEditModalLink" />
   </div>
 </template>
 
