@@ -10,6 +10,7 @@
 
 <style scoped>
 div {
+    box-sizing: border-box;
     --bs-primary-rgb: 13, 110, 253;
     --bs-secondary-rgb: 108, 117, 125;
     --bs-success-rgb: 25, 135, 84;

@@ -2,6 +2,8 @@
 import VButton from '../components/VButton.vue';
 import VListItem from '../components/VListItem.vue';
 import VContextMenu from '../components/VContextMenu.vue';
+import VMoveModal from '../components/VMoveModal.vue';
+import VEditModal from '../components/VEditModal.vue';
 import { ref } from 'vue';
 
 const contentMenuItems = ref([
@@ -16,6 +18,12 @@ const listItems = ref([
   { id: 3, text: "List 3" }
 ]);
 
+const modalitems = ref([
+  { text: 'AA', event: 'A' },
+  { text: 'BB', event: 'B' },
+  { text: 'CC', event: 'C' }
+]);
+
 </script>
 
 <template>
@@ -27,6 +35,8 @@ const listItems = ref([
       <VListItem v-for="itme in listItems" :key="itme.id">{{ itme.text }}</VListItem>
     </div>
     <VContextMenu :items="contentMenuItems" />
+    <VMoveModal :visible="true" :items="modalitems" />
+    <VEditModal :visible="true" />
   </div>
 </template>
 
