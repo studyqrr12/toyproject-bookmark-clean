@@ -5,7 +5,7 @@ import VContextMenu from '../components/VContextMenu.vue';
 import VMoveModal from '../components/VMoveModal.vue';
 import VEditModal from '../components/VEditModal.vue';
 import { createBookmarkListData, createContextMenuData, createEditModalData, createMoveModalData } from '@/data/data';
-import { initFileSelector, readFile } from '@/data/fileSelect';
+import { initFileSelector, readFile, xmlToNodes } from '@/data/fileSelect';
 
 const { visible: editModalVisible, text: editModalText, link: editModalLink, initValues: initEditModalValues, updateVisible: updateEditModalVisible, updateText: updateEditModalText, updateLink: updateEditModalLink } = createEditModalData();
 const { visible: moveModalVisible, items: moveModalItems, initValues: initMoveModalValues, updateVisible: updateMoveModalVisible, updateItems: updateMoveModalItems } = createMoveModalData();
@@ -16,6 +16,7 @@ const { ref: fileRef, trigger: selectFile } = initFileSelector({
   select: (files: FileList) => {
     Array.from(files).forEach(file => readFile(file, ((text: string) => {
       //TODO: 트리 생성 및 병합
+      const root = xmlToNodes(text);
     })));
   }
 })
