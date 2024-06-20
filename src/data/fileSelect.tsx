@@ -73,12 +73,16 @@ declare class Node {
   id: number
   type: 'root' | 'dir' | 'lnk'
   parent: Node | null
-  children: Array<Node> | null
   initScope: () => void
   parse: (raw?: string) => void
+  append: (node: Node) => void
   toJSON: () => any
   toString: () => string;
   [Symbol.toStringTag]: string
+
+  children: Array<Node> | null
+  attribute?: { [key: string]: any }
+  text?: string
 }
 
 function Node(this: Node, opt: NodeConstructorOpt) {
@@ -144,15 +148,42 @@ Node.prototype.parse = function (raw?: string): Node {
 
   if (raw.startsWith('<A ')) {
     //Anchor
+    this.type = 'lnk'
   } else if (raw.startsWith('<H3 ')) {
     //Directory
-  } else {
-    //DL
-    // console.log(raw)
+    this.type = 'dir'
   }
 
+  let text = raw
+
+  const closeTag = text.substring(raw.lastIndexOf('</'), text.length)
+  text = text.substring(0, text.length - closeTag.length)
+
+  const openTag = text.substring(0, text.indexOf('>'))
+  text = text.substring(openTag.length + 1, text.length)
+
+  const attribute = Object.fromEntries(
+    openTag
+      .split(' ')
+      .splice(1)
+      .map((item) => {
+        const [key, value] = item.split('=')
+        return [key, value.substring(1, value.length - 1)]
+      })
+  )
+
+  this.text = text
+  this.attribute = attribute
+
   return this
-  //TODO: Parse
+}
+
+Node.prototype.append = function (node: Node) {
+  if (!Array.isArray(this.children)) {
+    this.children = []
+  }
+
+  return this.children.push(node)
 }
 
 export function xmlToNodes(text: string) {
@@ -165,16 +196,34 @@ export function xmlToNodes(text: string) {
     .map((line) => line.trim())
     .filter((line) => line.length)
 
-  data.forEach((item: string, idx: number, array: Array<string>) => {
-    //TODO: create Tree
+  const stack: Array<Node> = []
+  let root: Node | undefined = void 0
 
-    if (item.startsWith('<DL><p>')) {
-      //OPEN
-    } else if (item.startsWith('</DL><p>')) {
-      //CLOSE
-    } else {
-      const node = new Node({ raw: item })
-      // console.log(JSON.stringify(node, null, 2))
+  data.forEach((item: string, idx: number, array: Array<string>) => {
+    if (item.startsWith('<DL>')) {
+      //새로운 그룹이 생성됩니다.
+      const group = new Node({ raw: array[idx - 1] })
+
+      if (stack[stack.length - 1]) {
+        const lastItem = stack[stack.length - 1]
+        lastItem.append(group)
+      }
+
+      stack.push(group)
+
+      if (group.type == 'root') root = group
+    } else if (item.startsWith('</DL>')) {
+      //그룹을 닫습니다
+      stack.pop()
+    } else if (item.startsWith('<A ')) {
+      //링크를 생성합니다
+      const link = new Node({ raw: item })
+      if (stack[stack.length - 1]) {
+        const lastItem = stack[stack.length - 1]
+        lastItem.append(link)
+      }
     }
   })
+
+  return root ?? new Node({})
 }

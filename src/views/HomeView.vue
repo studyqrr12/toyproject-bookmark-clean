@@ -17,6 +17,7 @@ const { ref: fileRef, trigger: selectFile } = initFileSelector({
     Array.from(files).forEach(file => readFile(file, ((text: string) => {
       //TODO: 트리 생성 및 병합
       const root = xmlToNodes(text);
+      console.log(JSON.stringify(root, null, 2));
     })));
   }
 })
