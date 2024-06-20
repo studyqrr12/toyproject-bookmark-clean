@@ -5,19 +5,35 @@ import VContextMenu from '../components/VContextMenu.vue';
 import VMoveModal from '../components/VMoveModal.vue';
 import VEditModal from '../components/VEditModal.vue';
 import { createBookmarkListData, createContextMenuData, createEditModalData, createMoveModalData } from '@/data/data';
-import { initFileSelector, readFile, xmlToNodes } from '@/data/fileSelect';
+import { Node, initFileSelector, readFile, xmlToNodes } from '@/data/fileSelect';
 
 const { visible: editModalVisible, text: editModalText, link: editModalLink, initValues: initEditModalValues, updateVisible: updateEditModalVisible, updateText: updateEditModalText, updateLink: updateEditModalLink } = createEditModalData();
 const { visible: moveModalVisible, items: moveModalItems, initValues: initMoveModalValues, updateVisible: updateMoveModalVisible, updateItems: updateMoveModalItems } = createMoveModalData();
 const { visible: contentMenuVisible, items: contentMenuItems, updateVisible: updateContextMenuVisible } = createContextMenuData();
 const { items: listItems } = createBookmarkListData();
 
+/** 북마크간 병합할 최상위 노드 */
+let root: Node | null = null;
+
+/** 리스트를 구성할 노드(루트 뿐 아니라 하위 디렉토리도 가능) */
+let target: Node | null = null;
+
 const { ref: fileRef, trigger: selectFile } = initFileSelector({
-  select: (files: FileList) => {
+  select: (files: FileList, cb: () => void) => {
     Array.from(files).forEach(file => readFile(file, ((text: string) => {
-      //TODO: 트리 생성 및 병합
-      const root = xmlToNodes(text);
-      console.log(JSON.stringify(root, null, 2));
+      const _root = xmlToNodes(text);
+
+      // 한번 북마크 트리가 생성된 이후로는 병합을 시도합니다
+      if (root == null) {
+        root = _root
+        target = _root;
+      } else {
+        root.merge(_root);
+      }
+
+      cb();
+
+      //TODO: 리스트 업데이트
     })));
   }
 })

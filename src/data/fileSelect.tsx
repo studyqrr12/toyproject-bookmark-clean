@@ -76,6 +76,7 @@ declare class Node {
   initScope: () => void
   parse: (raw?: string) => void
   append: (node: Node) => void
+  merge: (node: Node) => void
   toJSON: () => any
   toString: () => string;
   [Symbol.toStringTag]: string
@@ -84,6 +85,8 @@ declare class Node {
   attribute?: { [key: string]: any }
   text?: string
 }
+
+export { Node }
 
 function Node(this: Node, opt: NodeConstructorOpt) {
   this.id = Node[NodeIdSymbol] += 1
@@ -183,7 +186,37 @@ Node.prototype.append = function (node: Node) {
     this.children = []
   }
 
+  node.parent = this
+
   return this.children.push(node)
+}
+
+Node.prototype.merge = function (node: Node) {
+  /** 루트나 디렉터리가 아니라면, 링크라면 append */
+  if (!Array.isArray(node.children)) {
+    this.append(node)
+    return
+  }
+
+  const toolbarFolder = this?.children?.find((item) => item?.attribute?.PERSONAL_TOOLBAR_FOLDER)
+
+  if (toolbarFolder == null) {
+    // 북마크바 폴더가 없다면 모두 append
+    node.children.forEach((item) => this.append(item))
+    return
+  }
+
+  // 북마크바 폴더가 있다면
+  node.children.forEach((item) => {
+    const isToolbarFolder = item?.attribute?.PERSONAL_TOOLBAR_FOLDER != void 0
+
+    if (!isToolbarFolder) {
+      this.append(item)
+    } else {
+      //북마크바 아이템은 기존 북마크바에 append
+      item.children?.forEach((subItem) => toolbarFolder.append(subItem))
+    }
+  })
 }
 
 export function xmlToNodes(text: string) {
