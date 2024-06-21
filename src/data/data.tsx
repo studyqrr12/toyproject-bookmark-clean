@@ -1,4 +1,5 @@
-import { ref } from 'vue'
+import { ref, type Ref } from 'vue'
+import type { Node } from './fileSelect'
 
 export function createEditModalData() {
   const visible = ref<boolean>(false)
@@ -54,10 +55,10 @@ export function createContextMenuData() {
 }
 
 export function createBookmarkListData() {
-  const items = ref([
-    { id: 1, text: 'List 1' },
-    { id: 2, text: 'List 2' },
-    { id: 3, text: 'List 3' }
+  const items: Ref<Array<Node>> = ref([
+    // { id: 1, text: 'List 1' },
+    // { id: 2, text: 'List 2' },
+    // { id: 3, text: 'List 3' }
   ])
   return { items }
 }

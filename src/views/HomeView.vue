@@ -31,12 +31,32 @@ const { ref: fileRef, trigger: selectFile } = initFileSelector({
         root.merge(_root);
       }
 
-      cb();
+      if (target) {
+        listItems.value = [...target.children as Array<Node>];
+      }
 
-      //TODO: 리스트 업데이트
+      cb(); //다시 파일을 선택 할 수 있도록 value 값을 비웁니다
+
     })));
   }
 })
+
+/** 상위 노드로 이동하여 목록을 다시 생성 합니다 */
+function topDirectoryMove() {
+  if (target?.parent) {
+    target = target?.parent;
+    listItems.value = [...target.children as Array<Node>];
+  }
+}
+
+function subDirectoryMove(item: Node) {
+  if (item.type === 'dir' || item.type == 'root') {
+    target = item;
+    if (target) {
+      listItems.value = [...target.children as Array<Node>];
+    }
+  }
+}
 
 // updateContextMenuVisible(true);
 // updateMoveModalVisible(true);
@@ -51,7 +71,10 @@ const { ref: fileRef, trigger: selectFile } = initFileSelector({
     <VButton>파일 저장</VButton>
 
     <div class="mt-2">
-      <VListItem v-for="itme in listItems" :key="itme.id">{{ itme.text }}</VListItem>
+      <VListItem @click="topDirectoryMove">...</VListItem>
+      <VListItem v-for="itme in listItems" :key="itme.id" @click="subDirectoryMove(itme)">{ {{ itme.type }} } {{
+        itme.text }}
+      </VListItem>
     </div>
     <VContextMenu :visible="contentMenuVisible" :items="contentMenuItems" @update:visible="updateContextMenuVisible" />
     <VMoveModal :visible="moveModalVisible" :items="moveModalItems" @update:visible="updateMoveModalVisible" />
