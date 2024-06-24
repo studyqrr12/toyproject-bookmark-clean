@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import VButton from '../components/VButton.vue';
-import VListItem from '../components/VListItem.vue';
-import VContextMenu from '../components/VContextMenu.vue';
-import VMoveModal from '../components/VMoveModal.vue';
-import VEditModal from '../components/VEditModal.vue';
 import { createBookmarkListData, createContextMenuData, createEditModalData, createMoveModalData } from '@/data/data';
-import { Node, initFileSelector, readFile, xmlToNodes } from '@/data/fileSelect';
+import { Node, initFileSelector, readFile, saveFile, xmlToNodes } from '@/data/fileSelect';
+import VButton from '../components/VButton.vue';
+import VContextMenu from '../components/VContextMenu.vue';
+import VEditModal from '../components/VEditModal.vue';
+import VListItem from '../components/VListItem.vue';
+import VMoveModal from '../components/VMoveModal.vue';
 
 const { visible: editModalVisible, text: editModalText, link: editModalLink, initValues: initEditModalValues, updateVisible: updateEditModalVisible, updateText: updateEditModalText, updateLink: updateEditModalLink } = createEditModalData();
 const { visible: moveModalVisible, items: moveModalItems, initValues: initMoveModalValues, updateVisible: updateMoveModalVisible, updateItems: updateMoveModalItems } = createMoveModalData();
@@ -68,7 +68,7 @@ function subDirectoryMove(item: Node) {
   <div class="container">
     <input type="file" class="hidden" ref="fileRef" accept=".html, .xml" multiple>
     <VButton @click="selectFile">파일 추가</VButton>
-    <VButton>파일 저장</VButton>
+    <VButton @click="saveFile(root)">파일 저장</VButton>
 
     <div class="mt-2">
       <VListItem @click="topDirectoryMove">...</VListItem>

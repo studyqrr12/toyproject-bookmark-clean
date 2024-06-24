@@ -63,6 +63,40 @@ export function readFile(file: File, callback: (text: string) => void) {
   })
 }
 
+export function saveFile(node: Node | null) {
+  const header = [
+    `<!DOCTYPE NETSCAPE-Bookmark-file-1>`,
+    `<!-- This is an automatically generated file.`,
+    `     It will be read and overwritten.`,
+    `     DO NOT EDIT! -->`,
+    `<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">`,
+    `<TITLE>Bookmarks</TITLE>`,
+    `<H1>Bookmarks</H1>`
+  ].join('\n')
+
+  if (node == null) node = new Node({ type: 'root' })
+
+  const text = [header, node.toXML()].join('\n')
+
+  // console.log(text)
+
+  const filename = 'bookmark_' + Date.now() + '.html'
+
+  const blob = new Blob([text], {
+    type: 'text/plain;charset=UTF-8'
+  })
+
+  const blobUrl = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = blobUrl
+  link.download = filename
+  link.click()
+  link.remove()
+
+  window.URL.revokeObjectURL(blobUrl)
+  return text
+}
+
 const NodeIdSymbol = Symbol('NODE_ID')
 
 type NodeConstructorOpt = { type?: 'root' | 'dir' | 'lnk'; raw?: string }
@@ -78,6 +112,7 @@ declare class Node {
   append: (node: Node) => void
   merge: (node: Node) => void
   toJSON: () => any
+  toXML: (depth?: number) => string
   toString: () => string;
   [Symbol.toStringTag]: string
 
@@ -104,14 +139,46 @@ Node.prototype[Symbol.toStringTag] = 'Node'
 Node.prototype.toJSON = function () {
   return Object.assign({}, this, { children: this.children })
 }
+Node.prototype.toXML = function (depth: number = 0): string {
+  const tab = '    '
+  const space = Array.from({ length: depth }).fill(tab).join('')
+
+  if (this.type === 'root') {
+    const prefix = space + '<DL><p>'
+    const middle = (this.children ?? []).map((item: Node) => item.toXML(depth + 1)).join('\n')
+    const suffix = space + '</DL><p>'
+    return [prefix, middle, suffix].join('\n')
+  }
+
+  if (this.type === 'dir') {
+    const attr = Object.entries(this.attribute ?? {})
+      .map((item) => [item[0], `"${item[1]}"`].join('='))
+      .join(' ')
+    const head = `<DT><H3 ${attr}>북마크바</H3>`
+    const open = '<DL><p>'
+    const close = '</DL><p>'
+
+    const middle = (this.children ?? []).map((item: Node) => item.toXML(depth + 1)).join('\n')
+
+    return [
+      space + head, //
+      space + open, //
+      middle,
+      space + close //
+    ].join('\n')
+  }
+
+  if (this.type === 'lnk') {
+    const attr = Object.entries(this.attribute ?? {})
+      .map((item) => [item[0], `"${item[1]}"`].join('='))
+      .join(' ')
+
+    return `${space}<DT><A ${attr}>${this.text ?? ''}</A>`
+  }
+
+  return space
+}
 Node.prototype.toString = function () {
-  // TODO tag
-  const openTag = ''
-  const closeTag = ''
-  const middle = ''
-
-  // return openTag + middle + closeTag; // <A>TEXT</A>
-
   return JSON.stringify(this, null, 2)
 }
 
