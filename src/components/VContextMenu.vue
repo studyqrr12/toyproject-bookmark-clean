@@ -1,7 +1,13 @@
 <script setup lang="ts">
-defineProps({
+import { computed, onBeforeUnmount, onMounted } from 'vue';
+
+const props = defineProps({
     visible: {
         type: Boolean,
+        require: true
+    },
+    view: {
+        type: Object,
         require: true
     },
     items: {
@@ -15,19 +21,47 @@ defineProps({
 
 const emit = defineEmits<{
     (e: 'update:visible', value: boolean): void
+    (e: 'click', event: MouseEvent, eventName: string, targetId?: number): void
 }>();
 
-function clickEvent(e: MouseEvent) {
+function clickEvent(e: MouseEvent, item: any) {
+    emit('update:visible', false);
+    emit('click', e, item.event, props?.view?.targetId);
+}
+
+function defaultContextMenuEvent(event: MouseEvent) {
+    event.preventDefault();
+}
+
+function defaultClickEvent(event: MouseEvent) {
     emit('update:visible', false);
 }
+
+onMounted(() => {
+    document.addEventListener('click', defaultClickEvent, { capture: true });
+    document.addEventListener('contextmenu', defaultContextMenuEvent);
+});
+
+onBeforeUnmount(() => {
+    document.addEventListener('click', defaultClickEvent, { capture: true });
+    document.removeEventListener('contextmenu', defaultContextMenuEvent);
+});
+
+const styles = computed(() => {
+    const { x, y } = props.view ?? { x: 0, y: 0 };
+    const prop = { left: `${x}px`, top: `${y}px`, display: 'block' };
+    const res = Object.entries(prop).map(item => [item[0], item[1] + ';'].join(':')).join(' ');
+    return res;
+});
 
 </script>
 
 <template>
     <div v-if="visible">
-        <ul>
-            <li v-for="item in items" :key="item.event"><a :data-menu-action="item.event" @click="clickEvent">{{
-                item.text }}</a></li>
+        <ul :style="styles">
+            <li v-for="item in items" :key="item.event"><a :data-menu-action="item.event"
+                    @click="ev => clickEvent(ev, item)">{{
+                        item.text }}</a></li>
         </ul>
     </div>
 </template>

@@ -26,7 +26,6 @@ function updateVisible(e: MouseEvent) {
     emit('update:visible', el.getAttribute('data-visible') != 'false');
 }
 
-
 </script>
 
 <template>

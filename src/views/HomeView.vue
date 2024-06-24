@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { createBookmarkListData, createContextMenuData, createEditModalData, createMoveModalData } from '@/data/data';
+import { initContextMenu } from '@/data/contextMenu';
+import { createBookmarkListData, createEditModalData, createMoveModalData } from '@/data/data';
 import { Node, initFileSelector, readFile, saveFile, xmlToNodes } from '@/data/fileSelect';
 import VButton from '../components/VButton.vue';
 import VContextMenu from '../components/VContextMenu.vue';
@@ -9,7 +10,7 @@ import VMoveModal from '../components/VMoveModal.vue';
 
 const { visible: editModalVisible, text: editModalText, link: editModalLink, initValues: initEditModalValues, updateVisible: updateEditModalVisible, updateText: updateEditModalText, updateLink: updateEditModalLink } = createEditModalData();
 const { visible: moveModalVisible, items: moveModalItems, initValues: initMoveModalValues, updateVisible: updateMoveModalVisible, updateItems: updateMoveModalItems } = createMoveModalData();
-const { visible: contentMenuVisible, items: contentMenuItems, updateVisible: updateContextMenuVisible } = createContextMenuData();
+
 const { items: listItems } = createBookmarkListData();
 
 /** 북마크간 병합할 최상위 노드 */
@@ -49,6 +50,7 @@ function topDirectoryMove() {
   }
 }
 
+/** 하위 노드로 이동하여 목록을 다시 생성 합니다 */
 function subDirectoryMove(item: Node) {
   if (item.type === 'dir' || item.type == 'root') {
     target = item;
@@ -58,9 +60,31 @@ function subDirectoryMove(item: Node) {
   }
 }
 
+const { contextMenuItems, contextMenuView, updateContextMenuVisible, updateContextMenuView } = initContextMenu();
+
 // updateContextMenuVisible(true);
 // updateMoveModalVisible(true);
 // updateEditModalVisible(true);
+
+function openContextMenu(ev: MouseEvent, node: Node) {
+  const { clientX, clientY } = ev;
+
+  updateContextMenuView({
+    visible: true,
+    x: clientX,
+    y: clientY,
+    targetId: node.id,
+    items: [
+      { text: 'a', event: 'A' },
+      { text: 'b', event: 'B' },
+      { text: 'c', event: 'C' },
+    ]
+  });
+}
+
+function clickContextMenu(ev: MouseEvent, eventName: string, targetId?: number) {
+  console.log({ eventName, targetId });
+}
 
 </script>
 
@@ -72,11 +96,13 @@ function subDirectoryMove(item: Node) {
 
     <div class="mt-2">
       <VListItem @click="topDirectoryMove">...</VListItem>
-      <VListItem v-for="itme in listItems" :key="itme.id" @click="subDirectoryMove(itme)">{ {{ itme.type }} } {{
-        itme.text }}
+      <VListItem v-for="itme in listItems" :key="itme.id" @click="subDirectoryMove(itme)"
+        @contextmenu="ev => openContextMenu(ev, itme)">{ {{ itme.type }} } {{
+          itme.text }}
       </VListItem>
     </div>
-    <VContextMenu :visible="contentMenuVisible" :items="contentMenuItems" @update:visible="updateContextMenuVisible" />
+    <VContextMenu :visible="contextMenuView.visible" :view="contextMenuView" :items="contextMenuItems"
+      @update:visible="updateContextMenuVisible" @click="clickContextMenu" />
     <VMoveModal :visible="moveModalVisible" :items="moveModalItems" @update:visible="updateMoveModalVisible" />
     <VEditModal :visible="editModalVisible" :text="editModalText" :link="editModalLink"
       @update:visible="updateEditModalVisible" @update:text="updateEditModalText" @update:link="updateEditModalLink" />

@@ -29,7 +29,6 @@ function updateLink(e: InputEvent) {
     emit('update:link', el.value);
 }
 
-
 </script>
 
 <template>

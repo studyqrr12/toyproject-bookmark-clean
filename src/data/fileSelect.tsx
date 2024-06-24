@@ -78,8 +78,6 @@ export function saveFile(node: Node | null) {
 
   const text = [header, node.toXML()].join('\n')
 
-  // console.log(text)
-
   const filename = 'bookmark_' + Date.now() + '.html'
 
   const blob = new Blob([text], {
@@ -111,6 +109,7 @@ declare class Node {
   parse: (raw?: string) => void
   append: (node: Node) => void
   merge: (node: Node) => void
+  findNodeById: (id: number, opt: { children: boolean; parent: boolean }) => Node | null
   toJSON: () => any
   toXML: (depth?: number) => string
   toString: () => string;
@@ -160,12 +159,7 @@ Node.prototype.toXML = function (depth: number = 0): string {
 
     const middle = (this.children ?? []).map((item: Node) => item.toXML(depth + 1)).join('\n')
 
-    return [
-      space + head, //
-      space + open, //
-      middle,
-      space + close //
-    ].join('\n')
+    return [space + head, space + open, middle, space + close].join('\n')
   }
 
   if (this.type === 'lnk') {
@@ -284,6 +278,29 @@ Node.prototype.merge = function (node: Node) {
       item.children?.forEach((subItem) => toolbarFolder.append(subItem))
     }
   })
+}
+
+Node.prototype.findNodeById = function (
+  id: number,
+  opt: { children: boolean; parent: boolean } = { children: false, parent: false }
+): Node | null {
+  const children = this.children ?? []
+
+  // 자식노드에서 찾기
+  const item = children.find((item) => item.id === id)
+  if (item != null) return item
+
+  // 만약 자식노드에서 찾지 못하면 하위 탐색 합니다
+  if (opt.children) {
+    // children.find((item) => item.findNodeById(id, opt))
+  }
+
+  // 만약 하위 탐색에서 찾지 못하면 상위 탐색 합니다.
+  if (opt.parent) {
+    //
+  }
+
+  return null
 }
 
 export function xmlToNodes(text: string) {
