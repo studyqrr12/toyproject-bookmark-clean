@@ -108,8 +108,14 @@ declare class Node {
   initScope: () => void
   parse: (raw?: string) => void
   append: (node: Node) => void
+  remove: () => void
   merge: (node: Node) => void
-  findNodeById: (id: number, opt: { children: boolean; parent: boolean }) => Node | null
+  findNodeById: (
+    id: number,
+    opt: {
+      /*children: boolean; parent: boolean*/
+    }
+  ) => Node | null
   toJSON: () => any
   toXML: (depth?: number) => string
   toString: () => string;
@@ -243,6 +249,8 @@ Node.prototype.parse = function (raw?: string): Node {
 }
 
 Node.prototype.append = function (node: Node) {
+  // this.remove()
+
   if (!Array.isArray(this.children)) {
     this.children = []
   }
@@ -250,6 +258,19 @@ Node.prototype.append = function (node: Node) {
   node.parent = this
 
   return this.children.push(node)
+}
+
+Node.prototype.remove = function () {
+  if (this.parent == null) return
+
+  const parent = this.parent
+
+  if (!Array.isArray(parent.children)) {
+    parent.children = []
+  }
+
+  parent.children = parent.children.filter((item) => item.id != this.id)
+  this.parent = null
 }
 
 Node.prototype.merge = function (node: Node) {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { initContextMenu } from '@/data/contextMenu';
+import { clickContextMenu as _clickContextMenu, dirItem, initContextMenu, lnkItem } from '@/data/contextMenu';
 import { createBookmarkListData, createEditModalData, createMoveModalData } from '@/data/data';
 import { Node, initFileSelector, readFile, saveFile, xmlToNodes } from '@/data/fileSelect';
 import VButton from '../components/VButton.vue';
@@ -74,16 +74,21 @@ function openContextMenu(ev: MouseEvent, node: Node) {
     x: clientX,
     y: clientY,
     targetId: node.id,
-    items: [
-      { text: 'a', event: 'A' },
-      { text: 'b', event: 'B' },
-      { text: 'c', event: 'C' },
-    ]
+    items: node.type === 'lnk' ? lnkItem : dirItem
   });
 }
 
-function clickContextMenu(ev: MouseEvent, eventName: string, targetId?: number) {
-  console.log({ eventName, targetId });
+const clickContextMenu = (ev: MouseEvent, eventName: string, targetId?: number) => {
+  _clickContextMenu(() => {
+    return {
+      target: target?.findNodeById(targetId ?? 1, {}),
+      eventName: eventName as any
+    };
+  });
+
+  if (target) {
+    listItems.value = [...target.children as Array<Node>];
+  }
 }
 
 </script>
