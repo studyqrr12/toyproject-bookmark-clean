@@ -1,14 +1,9 @@
+import VContextMenu from '../components/VContextMenu.vue'
+
 import { reactive, ref, type Reactive, type Ref } from 'vue'
 import type { Node } from './fileSelect'
 
 export function initContextMenu() {
-  //
-  //   const visible = ref<boolean>(false)
-  //   const items = ref([
-  //     { text: 'a', event: 'A' },
-  //     { text: 'b', event: 'B' },
-  //     { text: 'c', event: 'C' }
-  //   ])
   const contextMenuView: Reactive<{ [name: string]: any }> = reactive({
     visible: false,
     x: 0,
@@ -55,30 +50,19 @@ type dirItemKeyType = keyof typeof dirItemObj
 type lnkItemKeyType = keyof typeof lnkItemObj
 export type mixItemKeyType = dirItemKeyType | lnkItemKeyType
 
-export const dirItem = [
-  { text: '하위 중복제거', event: 'dir-remove-child' },
-  { text: '링크만 유지', event: 'dir-only-link' },
-  { text: '이름 바꾸기', event: 'dir-rename' },
-  { text: '이동', event: 'dir-move' },
-  { text: '삭제', event: 'dir-remove' }
-]
+export const dirItem = Object.entries(dirItemObj).map((item) => ({ event: item[0], text: item[1] }))
+export const lnkItem = Object.entries(lnkItemObj).map((item) => ({ event: item[0], text: item[1] }))
 
-export const lnkItem = [
-  { text: '편집', event: 'lnk-edit' },
-  { text: '이동', event: 'lnk-move' },
-  { text: '삭제', event: 'lnk-remove' }
-]
+interface ClickContextMenuParam {
+  getTarget: () => { target: Node | null | undefined; eventName: mixItemKeyType }
+  updateList: () => void
+  openMoveModal: (cb: (target: Node) => void) => void
+}
 
-export function clickContextMenu(
-  getTargetCallback: () => {
-    target: Node | null | undefined
-    eventName: mixItemKeyType
-  }
-) {
-  const opt = getTargetCallback()
-  const { target, eventName } = opt
+export function clickContextMenu(param: ClickContextMenuParam) {
+  const { getTarget, updateList, openMoveModal } = param
 
-  // console.log(eventName, target)
+  const { target, eventName } = getTarget()
 
   switch (eventName) {
     case 'dir-remove':
@@ -87,6 +71,9 @@ export function clickContextMenu(
       break
     case 'dir-move':
     case 'lnk-move':
+      openMoveModal((item) => {
+        console.log('openMoveModal', item)
+      })
       break
 
     case 'dir-rename':
@@ -94,13 +81,56 @@ export function clickContextMenu(
       break
   }
 
-  // console.log(eventName, target)
-
-  // if (target?.type === 'lnk') {
-  //
-  // }
-
-  // if (target?.type === 'dir') {
-  //
-  // }
+  updateList()
 }
+
+interface createClickContextMenuFnParam {
+  getRoot: () => Node | null
+  updateList: () => void
+}
+
+export function createClickContextMenuFn(param: createClickContextMenuFnParam) {
+  const { getRoot, updateList } = param
+  return function (ev: MouseEvent, eventName: string, targetId?: number) {
+    const target = getRoot()?.findNodeById(targetId ?? 1, {})
+    console.log(eventName, target)
+
+    switch (eventName) {
+      case 'dir-remove':
+      case 'lnk-remove':
+        target?.remove()
+        break
+      case 'dir-move':
+      case 'lnk-move':
+        // openMoveModal((item) => {
+        //   console.log('openMoveModal', item)
+        // })
+        break
+
+      case 'dir-rename':
+      case 'lnk-edit':
+        break
+    }
+    updateList()
+  }
+}
+
+interface createOpenContextMenuFnParam {
+  updateContextMenuView: (_: any) => void
+}
+export function createOpenContextMenuFn(param: createOpenContextMenuFnParam) {
+  const { updateContextMenuView } = param
+  return function (ev: MouseEvent, node: Node) {
+    const { clientX, clientY } = ev
+    updateContextMenuView({
+      visible: true,
+      x: clientX,
+      y: clientY,
+      targetId: node.id,
+      items: node.type === 'lnk' ? lnkItem : dirItem
+    })
+  }
+}
+
+export { VContextMenu }
+export default VContextMenu

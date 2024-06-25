@@ -30,3 +30,11 @@ body,
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     margin: 8px auto;
 }
+
+.hidden {
+    display: none;
+}
+
+.mt-2 {
+    margin-top: .5rem !important;
+}

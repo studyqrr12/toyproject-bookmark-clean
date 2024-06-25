@@ -1,17 +1,21 @@
 <script setup lang="ts">
-import { clickContextMenu as _clickContextMenu, dirItem, initContextMenu, lnkItem } from '@/data/contextMenu';
-import { createBookmarkListData, createEditModalData, createMoveModalData } from '@/data/data';
-import { Node, initFileSelector, readFile, saveFile, xmlToNodes } from '@/data/fileSelect';
-import VButton from '../components/VButton.vue';
-import VContextMenu from '../components/VContextMenu.vue';
-import VEditModal from '../components/VEditModal.vue';
+import { ref, type Ref } from 'vue';
+// import VEditModal from '../components/VEditModal.vue';
 import VListItem from '../components/VListItem.vue';
 import VMoveModal from '../components/VMoveModal.vue';
+
+import { VButton } from '@/data/button';
+import { VContextMenu, createClickContextMenuFn, createOpenContextMenuFn, initContextMenu } from '@/data/contextMenu';
+import { VEditModal } from '@/data/editModa';
+import { Node, initFileSelector, readFile, saveFile, xmlToNodes } from '@/data/fileSelect';
+
+import { createEditModalData, createMoveModalData } from '@/data/data'; //TODO: remove
 
 const { visible: editModalVisible, text: editModalText, link: editModalLink, initValues: initEditModalValues, updateVisible: updateEditModalVisible, updateText: updateEditModalText, updateLink: updateEditModalLink } = createEditModalData();
 const { visible: moveModalVisible, items: moveModalItems, initValues: initMoveModalValues, updateVisible: updateMoveModalVisible, updateItems: updateMoveModalItems } = createMoveModalData();
 
-const { items: listItems } = createBookmarkListData();
+/** 리스트 목록 */
+const listItems: Ref<Array<Node>> = ref([]);
 
 /** 북마크간 병합할 최상위 노드 */
 let root: Node | null = null;
@@ -61,35 +65,15 @@ function subDirectoryMove(item: Node) {
 }
 
 const { contextMenuItems, contextMenuView, updateContextMenuVisible, updateContextMenuView } = initContextMenu();
-
-// updateContextMenuVisible(true);
-// updateMoveModalVisible(true);
-// updateEditModalVisible(true);
-
-function openContextMenu(ev: MouseEvent, node: Node) {
-  const { clientX, clientY } = ev;
-
-  updateContextMenuView({
-    visible: true,
-    x: clientX,
-    y: clientY,
-    targetId: node.id,
-    items: node.type === 'lnk' ? lnkItem : dirItem
-  });
-}
-
-const clickContextMenu = (ev: MouseEvent, eventName: string, targetId?: number) => {
-  _clickContextMenu(() => {
-    return {
-      target: target?.findNodeById(targetId ?? 1, {}),
-      eventName: eventName as any
-    };
-  });
-
-  if (target) {
-    listItems.value = [...target.children as Array<Node>];
+const openContextMenu = createOpenContextMenuFn({ updateContextMenuView });
+const clickContextMenu = createClickContextMenuFn({
+  getRoot: () => root,
+  updateList: () => {
+    if (target) {
+      listItems.value = [...target.children as Array<Node>];
+    }
   }
-}
+});
 
 </script>
 
@@ -113,13 +97,3 @@ const clickContextMenu = (ev: MouseEvent, eventName: string, targetId?: number) 
       @update:visible="updateEditModalVisible" @update:text="updateEditModalText" @update:link="updateEditModalLink" />
   </div>
 </template>
-
-<style scoped>
-.hidden {
-  display: none;
-}
-
-.mt-2 {
-  margin-top: .5rem !important;
-}
-</style>

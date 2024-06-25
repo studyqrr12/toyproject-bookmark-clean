@@ -113,7 +113,8 @@ declare class Node {
   findNodeById: (
     id: number,
     opt: {
-      /*children: boolean; parent: boolean*/
+      children?: boolean
+      parent?: boolean
     }
   ) => Node | null
   toJSON: () => any
@@ -303,17 +304,23 @@ Node.prototype.merge = function (node: Node) {
 
 Node.prototype.findNodeById = function (
   id: number,
-  opt: { children: boolean; parent: boolean } = { children: false, parent: false }
+  opt: { children?: boolean; parent?: boolean } = {}
 ): Node | null {
+  if (id == this.id) return this
+
   const children = this.children ?? []
 
   // 자식노드에서 찾기
-  const item = children.find((item) => item.id === id)
+  let item = children.find((item) => item.id === id)
   if (item != null) return item
 
   // 만약 자식노드에서 찾지 못하면 하위 탐색 합니다
   if (opt.children) {
-    // children.find((item) => item.findNodeById(id, opt))
+    item =
+      children
+        .map((item) => item.findNodeById(id, { children: true }))
+        .filter((item) => item != null)[0] ?? void 0
+    if (item != null) return item
   }
 
   // 만약 하위 탐색에서 찾지 못하면 상위 탐색 합니다.
