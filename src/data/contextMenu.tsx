@@ -132,5 +132,48 @@ export function createOpenContextMenuFn(param: createOpenContextMenuFnParam) {
   }
 }
 
-export { VContextMenu }
+interface ContextMenuItem {
+  event: string
+  text: string
+}
+
+/** 반응형(reactive)이 아닌 참조 */
+interface SoftRef {
+  value: any
+}
+
+function useContextMenu() {
+  const contextMenuState: Reactive<{ [name: string]: any }> = reactive({
+    visible: false,
+    x: 0,
+    y: 0
+  })
+
+  const contextMenuItem: Ref<Array<ContextMenuItem>> = ref([])
+
+  const contextMenuEvent: Ref<any> = ref(null)
+
+  const handleContextMenu = (value: any) => {
+    Object.entries(value).forEach(([key, value]) => (contextMenuState[key] = value))
+  }
+
+  const handleContextMenuItem = (value: Array<ContextMenuItem>) => {
+    contextMenuItem.value = value
+  }
+
+  const handleContextMenuEvent = (value: any) => {
+    contextMenuEvent.value = value
+  }
+
+  return {
+    contextMenuState,
+    contextMenuItem,
+    contextMenuEvent,
+    handleContextMenu,
+    handleContextMenuItem,
+    handleContextMenuEvent
+  }
+}
+
+export { VContextMenu, useContextMenu }
 export default VContextMenu

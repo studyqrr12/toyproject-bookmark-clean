@@ -10,6 +10,6 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "lib": ["ESNext"]
+    "lib": ["DOM", "ESNext"]
   }
 }
